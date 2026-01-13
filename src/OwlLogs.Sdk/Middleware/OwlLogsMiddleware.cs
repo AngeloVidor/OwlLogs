@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
+using OwlLogs.Sdk.Abstractions;
 using OwlLogs.Sdk.Models;
 
 namespace OwlLogs.Sdk.Middleware;
@@ -7,10 +9,19 @@ namespace OwlLogs.Sdk.Middleware;
 public sealed class OwlLogsMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly IEnumerable<IOwlLogsSink> _sinks;
+    private static readonly HashSet<string> SensitiveHeaders = new()
+    {
+        "Authorization",
+        "Cookie",
+        "Set-Cookie",
+        "X-Api-Key"
+    };
 
-    public OwlLogsMiddleware(RequestDelegate next)
+    public OwlLogsMiddleware(RequestDelegate next, IEnumerable<IOwlLogsSink> sinks)
     {
         _next = next;
+        _sinks = sinks;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -27,16 +38,26 @@ public sealed class OwlLogsMiddleware
 
             var log = new ApiLogEntry
             {
-                method = context.Request.Method,
-                path = context.Request.Path.ToString(),
-                status_code = context.Response.StatusCode,
-                duration_ms = stopwatch.Elapsed.TotalMilliseconds,
-                occurred_at = DateTime.UtcNow
+                Method = context.Request.Method,
+                Path = context.Request.Path.ToString(),
+                StatusCode = context.Response.StatusCode,
+                DurationMs = stopwatch.Elapsed.TotalMilliseconds,
+                OccurredAt = DateTime.UtcNow,
+                CorrelationId = context.TraceIdentifier,
+                SafeRequestHeaders = FilterHeaders(context.Request.Headers),
+                SafeResponseHeaders = FilterHeaders(context.Response.Headers),
+                ContentType = context.Request.ContentType,
+                ClientIp = context.Connection.RemoteIpAddress?.ToString() //todo: map to ipv4
             };
 
-            Console.WriteLine(
-                $"[OWL] {log.method} {log.path} → {log.status_code} ({log.duration_ms} ms)"
-            );
+            await Task.WhenAll(_sinks.Select(s => s.WriteAsync(log)));
         }
+
+    }
+    private static Dictionary<string, string> FilterHeaders(IHeaderDictionary headers)
+    {
+        return headers
+            .Where(h => !SensitiveHeaders.Contains(h.Key))
+            .ToDictionary(h => h.Key, h => h.Value.ToString());
     }
 }

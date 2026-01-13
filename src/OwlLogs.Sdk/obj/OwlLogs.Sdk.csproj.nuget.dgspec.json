@@ -5,7 +5,7 @@
   },
   "projects": {
     "C:\\Users\\angel\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj": {
-      "version": "1.0.0",
+      "version": "1.0.2",
       "restore": {
         "projectUniqueName": "C:\\Users\\angel\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj",
         "projectName": "OwlLogs.Sdk",
@@ -25,6 +25,7 @@
           "net8.0"
         ],
         "sources": {
+          "C:\\NuGetLocal": {},
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },

@@ -4,15 +4,26 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+
+
+    <PackageId>OwlLogs.Sdk</PackageId>
+    <Version>1.0.2</Version>
+    <Authors>Angelo Vidor</Authors>
+    <Description>OwlLogs SDK for custom logging</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Extensions\" />
+    <Folder Include="Middleware\" />
+    <Folder Include="Models\" />
+    <Folder Include="Sinks\" />
+    <Folder Include="Abstractions\" />
   </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
 
 </Project>

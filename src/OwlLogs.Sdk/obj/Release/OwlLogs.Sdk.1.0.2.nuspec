@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>OwlLogs.Sdk</id>
+    <version>1.0.2</version>
+    <authors>Angelo Vidor</authors>
+    <description>OwlLogs SDK for custom logging</description>
+    <repository type="git" commit="d6fc221aaa926485a714a81756e52d0d6cb66796" />
+    <dependencies>
+      <group targetFramework="net8.0" />
+    </dependencies>
+    <frameworkReferences>
+      <group targetFramework="net8.0">
+        <frameworkReference name="Microsoft.AspNetCore.App" />
+      </group>
+    </frameworkReferences>
+  </metadata>
+  <files>
+    <file src="C:\Users\angel\OwlLogs\src\OwlLogs.Sdk\bin\Release\net8.0\OwlLogs.Sdk.dll" target="lib\net8.0\OwlLogs.Sdk.dll" />
+  </files>
+</package>
