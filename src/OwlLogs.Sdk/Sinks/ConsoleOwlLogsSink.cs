@@ -1,6 +1,7 @@
 using OwlLogs.Sdk.Abstractions;
 using OwlLogs.Sdk.Models;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace OwlLogs.Sdk.Sinks
@@ -23,6 +24,9 @@ namespace OwlLogs.Sdk.Sinks
             Console.Write("\u001b[33m | IP: " + entry.ClientIp + "\u001b[0m"); // DarkYellow
             Console.Write("\u001b[37m | ContentType: " + entry.ContentType + "\u001b[0m"); // Gray
             Console.WriteLine();
+
+            var json = JsonSerializer.Serialize(entry);
+            File.AppendAllText("owl_logs.json", json + "\n");
 
 
             return Task.CompletedTask;
