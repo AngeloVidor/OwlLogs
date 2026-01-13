@@ -5,7 +5,7 @@
   },
   "projects": {
     "C:\\Users\\angel\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj": {
-      "version": "1.0.2",
+      "version": "1.0.6",
       "restore": {
         "projectUniqueName": "C:\\Users\\angel\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj",
         "projectName": "OwlLogs.Sdk",
@@ -50,6 +50,12 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "RabbitMQ.Client": {
+              "target": "Package",
+              "version": "[6.8.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

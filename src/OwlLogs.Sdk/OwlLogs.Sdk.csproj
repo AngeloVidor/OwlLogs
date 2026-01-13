@@ -8,7 +8,7 @@
 
 
     <PackageId>OwlLogs.Sdk</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.0.6</Version>
     <Authors>Angelo Vidor</Authors>
     <Description>OwlLogs SDK for custom logging</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -24,6 +24,10 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
   </ItemGroup>
 
 </Project>

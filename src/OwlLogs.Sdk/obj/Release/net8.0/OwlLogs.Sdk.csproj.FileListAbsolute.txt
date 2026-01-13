@@ -10,3 +10,4 @@ C:\Users\angel\OwlLogs\src\OwlLogs.Sdk\obj\Release\net8.0\OwlLogs.Sdk.dll
 C:\Users\angel\OwlLogs\src\OwlLogs.Sdk\obj\Release\net8.0\refint\OwlLogs.Sdk.dll
 C:\Users\angel\OwlLogs\src\OwlLogs.Sdk\obj\Release\net8.0\OwlLogs.Sdk.pdb
 C:\Users\angel\OwlLogs\src\OwlLogs.Sdk\obj\Release\net8.0\ref\OwlLogs.Sdk.dll
+C:\Users\angel\OwlLogs\src\OwlLogs.Sdk\obj\Release\net8.0\OwlLogs.Sdk.csproj.AssemblyReference.cache
