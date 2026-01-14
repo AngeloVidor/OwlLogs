@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("OwlLogs SDK for custom logging")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.2.7.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.2.7+ad3d2c6931d216d46204d201d41e05a0d4637356")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.2.7+21580d49933ad354df41eca96ee8f7a2eb375897")]
 [assembly: System.Reflection.AssemblyProductAttribute("OwlLogs.Sdk")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OwlLogs.Sdk")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.2.7.0")]
