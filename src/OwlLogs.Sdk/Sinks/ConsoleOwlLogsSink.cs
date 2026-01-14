@@ -25,11 +25,49 @@ namespace OwlLogs.Sdk.Sinks
             Console.Write("\u001b[37m | ContentType: " + entry.ContentType + "\u001b[0m"); // Gray
             Console.WriteLine();
 
+            if (entry.Exception != null)
+            {
+                WriteException(entry.Exception);
+            }
+
             var json = JsonSerializer.Serialize(entry);
             File.AppendAllText("owl_logs.json", json + "\n");
 
 
             return Task.CompletedTask;
+        }
+
+        private static void WriteException(ExceptionLog ex)
+        {
+            Console.WriteLine();
+            Console.WriteLine("\u001b[31m[EXCEPTION]\u001b[0m"); // Red
+
+            Console.WriteLine(
+                $"\u001b[31mType:\u001b[0m {ex.Type}"
+            );
+
+            Console.WriteLine(
+                $"\u001b[31mMessage:\u001b[0m {ex.Message}"
+            );
+
+            if (!string.IsNullOrWhiteSpace(ex.TargetSite))
+            {
+                Console.WriteLine(
+                    $"\u001b[31mTarget:\u001b[0m {ex.TargetSite}"
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(ex.StackTrace))
+            {
+                Console.WriteLine("\u001b[31mStackTrace:\u001b[0m");
+                Console.WriteLine("\u001b[31m" + ex.StackTrace + "\u001b[0m");
+            }
+
+            if (ex.Inner != null)
+            {
+                Console.WriteLine("\u001b[31m--- Inner Exception ---\u001b[0m");
+                WriteException(ex.Inner);
+            }
         }
     }
 }
