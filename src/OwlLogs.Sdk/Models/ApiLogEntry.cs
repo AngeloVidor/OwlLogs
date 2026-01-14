@@ -10,8 +10,8 @@ public class ApiLogEntry
 
     public string? ContentType { get; set; }
     public string? ClientIp { get; set; }
-    public Dictionary<string, string>? SafeRequestHeaders { get; set; }
-    public Dictionary<string, string>? SafeResponseHeaders { get; set; }
+    public IDictionary<string, string>? SafeRequestHeaders { get; set; }
+    public IDictionary<string, string>? SafeResponseHeaders { get; set; }
     public string? CorrelationId { get; set; }
     public BodyLog? RequestBody { get; set; }
     public BodyLog? ResponseBody { get; set; }

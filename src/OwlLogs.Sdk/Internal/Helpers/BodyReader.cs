@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using OwlLogs.Sdk.Models;
 using OwlLogs.Sdk.Options;
 using System.Text.Json;
+using Microsoft.Extensions.Primitives;
 
 namespace OwlLogs.Sdk.Internal.Helpers;
 
@@ -61,8 +62,11 @@ internal static class BodyReader
             truncated = true;
         }
 
-        body = MaskJsonFields(body, options.MaskFields);
-
+        if (options.MaskSensitiveData)
+        {
+            body = MaskJsonFields(body, options.MaskFields);
+        }
+        
         return new BodyLog
         {
             Raw = body,
@@ -111,4 +115,49 @@ internal static class BodyReader
 
         return element.Deserialize<object>()!;
     }
+
+    internal static class HeaderSanitizer
+    {
+        public static IDictionary<string, string> Sanitize(
+            IHeaderDictionary headers,
+            OwlLogsOptions options)
+        {
+            var result = new Dictionary<string, string>();
+
+            foreach (var header in headers)
+            {
+                if (!options.MaskSensitiveData)
+                {
+                    result[header.Key] = header.Value.ToString();
+                    continue;
+                }
+
+                if (options.MaskHeaders.Contains(header.Key))
+                {
+                    result[header.Key] = MaskHeaderValue(header.Key, header.Value);
+                    continue;
+                }
+
+                result[header.Key] = header.Value.ToString();
+            }
+
+            return result;
+        }
+
+        private static string MaskHeaderValue(string key, StringValues value)
+        {
+            if (key.Equals("authorization", StringComparison.OrdinalIgnoreCase))
+            {
+                var raw = value.ToString();
+
+                if (raw.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    return "Bearer ***";
+
+                return "***";
+            }
+
+            return "***";
+        }
+    }
+
 }
