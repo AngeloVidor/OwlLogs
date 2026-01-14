@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
 using OwlLogs.Sdk.Abstractions;
+using OwlLogs.Sdk.Internal.Mappers;
 using OwlLogs.Sdk.Models;
 
 namespace OwlLogs.Sdk.Middleware;
@@ -27,13 +28,20 @@ public sealed class OwlLogsMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         var stopwatch = Stopwatch.StartNew();
+        Exception? capturedException = null;
 
         try
         {
             await _next(context);
         }
+        catch (Exception ex)
+        {
+            capturedException = ex;
+            throw;
+        }
         finally
         {
+
             stopwatch.Stop();
 
             var log = new ApiLogEntry
@@ -47,7 +55,8 @@ public sealed class OwlLogsMiddleware
                 SafeRequestHeaders = FilterHeaders(context.Request.Headers),
                 SafeResponseHeaders = FilterHeaders(context.Response.Headers),
                 ContentType = context.Request.ContentType,
-                ClientIp = context.Connection.RemoteIpAddress?.ToString() //todo: map to ipv4
+                ClientIp = context.Connection.RemoteIpAddress?.ToString(), //todo: map to ipv4
+                Exception = ExceptionMapper.Map(capturedException)
             };
 
             await Task.WhenAll(_sinks.Select(s => s.WriteAsync(log)));
