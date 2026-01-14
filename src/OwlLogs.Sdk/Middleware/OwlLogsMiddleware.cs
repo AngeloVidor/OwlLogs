@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using OwlLogs.Sdk.Abstractions;
 using OwlLogs.Sdk.Internal.Helpers;
+using OwlLogs.Sdk.Internal.Logging;
 using OwlLogs.Sdk.Internal.Mappers;
 using OwlLogs.Sdk.Models;
 using OwlLogs.Sdk.Options;
 using static OwlLogs.Sdk.Internal.Helpers.BodyReader;
+
 
 namespace OwlLogs.Sdk.Middleware;
 
@@ -15,13 +17,37 @@ public sealed class OwlLogsMiddleware
     private readonly IEnumerable<IOwlLogsSink> _sinks;
     private readonly OwlLogsOptions _options;
 
+    private static readonly object _initLock = new();
+    private static Lazy<LogBuffer> _logBuffer = new(() => null!);
+    private static Lazy<Task> _workerTask = new(() => null!);
+    private static readonly CancellationTokenSource _cts = new();
+    private static bool _initialized = false;
+
     public OwlLogsMiddleware(RequestDelegate next, IEnumerable<IOwlLogsSink> sinks, OwlLogsOptions options)
     {
         _next = next;
         _sinks = sinks;
         _options = options;
-    }
 
+        if (!_initialized)
+        {
+            lock (_initLock)
+            {
+                if (!_initialized)
+                {
+                    _logBuffer = new Lazy<LogBuffer>(() => new LogBuffer(_options.BufferSize));
+                    _workerTask = new Lazy<Task>(() =>
+                    {
+                        var worker = new LogWorker(_logBuffer.Value, _sinks, _cts.Token, _options.BatchSize, _options.FlushIntervalMs);
+                        return Task.Run(() => worker.RunAsync());
+                    });
+
+                    _ = _workerTask.Value;
+                    _initialized = true;
+                }
+            }
+        }
+    }
     public async Task InvokeAsync(HttpContext context)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -52,6 +78,7 @@ public sealed class OwlLogsMiddleware
         }
         finally
         {
+            stopwatch.Stop();
 
             var safeRequestHeaders = _options.LogRequestHeaders
                 ? HeaderSanitizer.Sanitize(context.Request.Headers, _options)
@@ -61,9 +88,6 @@ public sealed class OwlLogsMiddleware
                 ? HeaderSanitizer.Sanitize(context.Response.Headers, _options)
                 : null;
 
-
-            stopwatch.Stop();
-
             if (_options.LogResponseBody)
             {
                 responseBody = await BodyReader.ReadResponseAsync(context, responseBuffer, _options);
@@ -72,12 +96,10 @@ public sealed class OwlLogsMiddleware
                 await responseBuffer.CopyToAsync(originalBody);
                 context.Response.Body = originalBody;
             }
-            var level = GetLogLevel(context.Response.StatusCode, exception);
-
 
             var log = new ApiLogEntry
             {
-                Level = level,
+                Level = GetLogLevel(context.Response.StatusCode, exception),
                 Method = context.Request.Method,
                 Path = context.Request.Path,
                 StatusCode = context.Response.StatusCode,
@@ -93,7 +115,7 @@ public sealed class OwlLogsMiddleware
                 Exception = ExceptionMapper.Map(exception, _options.ExceptionOptions)
             };
 
-            await Task.WhenAll(_sinks.Select(s => s.WriteAsync(log)));
+            _logBuffer.Value.Enqueue(log);
         }
     }
 
