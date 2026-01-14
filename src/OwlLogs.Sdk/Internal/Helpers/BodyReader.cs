@@ -62,11 +62,12 @@ internal static class BodyReader
             truncated = true;
         }
 
-        if (options.MaskSensitiveData)
+        if (options.Mask.Enabled)
         {
-            body = MaskJsonFields(body, options.MaskFields);
+            body = MaskJsonFields(body, options.Mask.Fields);
         }
-        
+
+
         return new BodyLog
         {
             Raw = body,
@@ -126,15 +127,15 @@ internal static class BodyReader
 
             foreach (var header in headers)
             {
-                if (!options.MaskSensitiveData)
+                if (!options.Mask.Enabled)
                 {
                     result[header.Key] = header.Value.ToString();
                     continue;
                 }
 
-                if (options.MaskHeaders.Contains(header.Key))
+                if (options.Mask.Headers.Contains(header.Key))
                 {
-                    result[header.Key] = MaskHeaderValue(header.Key, header.Value);
+                    result[header.Key] = MaskHeaderValue(header.Key, header.Value, options.Mask.MaskValue);
                     continue;
                 }
 
@@ -144,20 +145,19 @@ internal static class BodyReader
             return result;
         }
 
-        private static string MaskHeaderValue(string key, StringValues value)
+        private static string MaskHeaderValue(string key, StringValues value, Func<string, string> mask)
         {
             if (key.Equals("authorization", StringComparison.OrdinalIgnoreCase))
             {
                 var raw = value.ToString();
-
                 if (raw.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                     return "Bearer ***";
-
-                return "***";
+                return mask(raw);
             }
 
-            return "***";
+            return mask(value.ToString());
         }
     }
+
 
 }

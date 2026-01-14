@@ -53,15 +53,14 @@ public sealed class OwlLogsMiddleware
         finally
         {
 
-            var safeRequestHeaders = HeaderSanitizer.Sanitize(
-                context.Request.Headers,
-                _options
-            );
+            var safeRequestHeaders = _options.LogRequestHeaders
+                ? HeaderSanitizer.Sanitize(context.Request.Headers, _options)
+                : null;
 
-            var safeResponseHeaders = HeaderSanitizer.Sanitize(
-                context.Response.Headers,
-                _options
-            );
+            var safeResponseHeaders = _options.LogResponseHeaders
+                ? HeaderSanitizer.Sanitize(context.Response.Headers, _options)
+                : null;
+
 
             stopwatch.Stop();
 

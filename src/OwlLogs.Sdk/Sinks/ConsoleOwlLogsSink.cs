@@ -23,9 +23,22 @@ namespace OwlLogs.Sdk.Sinks
             Console.Write("\u001b[34m | CorrelationId: " + entry.CorrelationId + "\u001b[0m"); // Blue
             Console.Write("\u001b[33m | IP: " + entry.ClientIp + "\u001b[0m"); // DarkYellow
             Console.Write("\u001b[37m | ContentType: " + entry.ContentType + "\u001b[0m"); // Gray
-
-
             Console.WriteLine();
+
+            if (entry.SafeRequestHeaders != null)
+            {
+                Console.WriteLine("\u001b[36m--- Safe Request Headers ---\u001b[0m");
+                foreach (var h in entry.SafeRequestHeaders)
+                    Console.WriteLine($"{h.Key}: {h.Value}");
+            }
+
+            if (entry.SafeResponseHeaders != null)
+            {
+                Console.WriteLine("\u001b[35m--- Safe Response Headers ---\u001b[0m");
+                foreach (var h in entry.SafeResponseHeaders)
+                    Console.WriteLine($"{h.Key}: {h.Value}");
+            }
+
 
             if (entry.RequestBody is not null)
             {
