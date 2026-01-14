@@ -23,7 +23,22 @@ namespace OwlLogs.Sdk.Sinks
             Console.Write("\u001b[34m | CorrelationId: " + entry.CorrelationId + "\u001b[0m"); // Blue
             Console.Write("\u001b[33m | IP: " + entry.ClientIp + "\u001b[0m"); // DarkYellow
             Console.Write("\u001b[37m | ContentType: " + entry.ContentType + "\u001b[0m"); // Gray
+
+
             Console.WriteLine();
+
+            if (entry.RequestBody is not null)
+            {
+                WriteBody("Request Body", entry.RequestBody, ConsoleColor.Cyan);
+            }
+
+            if (entry.ResponseBody is not null)
+            {
+                WriteBody("Response Body", entry.ResponseBody, ConsoleColor.Magenta);
+            }
+
+            Console.WriteLine(entry.ResponseBody);
+
 
             if (entry.Exception != null)
             {
@@ -35,6 +50,25 @@ namespace OwlLogs.Sdk.Sinks
 
 
             return Task.CompletedTask;
+        }
+
+        private static void WriteBody(string title, BodyLog body, ConsoleColor color)
+        {
+            Console.WriteLine();
+
+            Console.ForegroundColor = color;
+            Console.WriteLine($"--- {title} ---");
+            Console.ResetColor();
+
+            if (!string.IsNullOrWhiteSpace(body.Raw))
+            {
+                Console.WriteLine(body.Raw);
+            }
+
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine($"Size: {body.Size} bytes" +
+                (body.Truncated ? " (truncated)" : string.Empty));
+            Console.ResetColor();
         }
 
         private static void WriteException(ExceptionLog ex)
