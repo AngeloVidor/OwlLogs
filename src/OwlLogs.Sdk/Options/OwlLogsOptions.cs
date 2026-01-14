@@ -9,6 +9,10 @@ public sealed class OwlLogsOptions
 
     public int MaxBodySize { get; set; } = 32_000;
 
+    public int BufferSize { get; set; } = 1000;
+    public int BatchSize { get; set; } = 10;
+    public int FlushIntervalMs { get; set; } = 500;
+
     public HashSet<string> AllowedContentTypes { get; set; } = new(StringComparer.OrdinalIgnoreCase)
         {
             "application/json"

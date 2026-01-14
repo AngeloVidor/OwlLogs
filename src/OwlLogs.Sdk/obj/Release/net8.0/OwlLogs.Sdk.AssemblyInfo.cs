@@ -13,11 +13,11 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Angelo Vidor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("OwlLogs SDK for custom logging")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.2.3.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.2.3+ca42e452824cf24bb2d9afb983feeb470706d991")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.2.7.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.2.7+ad3d2c6931d216d46204d201d41e05a0d4637356")]
 [assembly: System.Reflection.AssemblyProductAttribute("OwlLogs.Sdk")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OwlLogs.Sdk")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.2.3.0")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.2.7.0")]
 
 // Gerado pela classe WriteCodeFragment do MSBuild.
 
