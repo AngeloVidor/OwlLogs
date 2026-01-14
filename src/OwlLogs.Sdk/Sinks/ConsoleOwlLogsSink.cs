@@ -3,6 +3,7 @@ using OwlLogs.Sdk.Models;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace OwlLogs.Sdk.Sinks
 {
@@ -10,15 +11,18 @@ namespace OwlLogs.Sdk.Sinks
     {
         public Task WriteAsync(ApiLogEntry entry)
         {
+            // Log Level Color
             Console.Write("\u001b[36m[OWL] \u001b[0m"); // Cyan
+            switch (entry.Level)
+            {
+                case LogLevel.Info: Console.Write("\u001b[32m[INFO] \u001b[0m"); break; // Green
+                case LogLevel.Warning: Console.Write("\u001b[33m[WARN] \u001b[0m"); break; // Yellow
+                case LogLevel.Error: Console.Write("\u001b[31m[ERROR] \u001b[0m"); break; // Red
+                case LogLevel.Critical: Console.Write("\u001b[35m[CRITICAL] \u001b[0m"); break; // Magenta
+            }
+
             Console.Write("\u001b[33m" + entry.Method + "\u001b[0m"); // Yellow
             Console.Write("\u001b[32m " + entry.Path + " \u001b[0m"); // Green
-
-            if (entry.StatusCode >= 400)
-                Console.Write("\u001b[31m→ " + entry.StatusCode + "\u001b[0m"); // Red
-            else
-                Console.Write("\u001b[35m→ " + entry.StatusCode + "\u001b[0m"); // Magenta
-
             Console.Write("\u001b[90m (" + entry.DurationMs.ToString("F2") + " ms)\u001b[0m"); // DarkGray
             Console.Write("\u001b[34m | CorrelationId: " + entry.CorrelationId + "\u001b[0m"); // Blue
             Console.Write("\u001b[33m | IP: " + entry.ClientIp + "\u001b[0m"); // DarkYellow
@@ -39,28 +43,18 @@ namespace OwlLogs.Sdk.Sinks
                     Console.WriteLine($"{h.Key}: {h.Value}");
             }
 
-
             if (entry.RequestBody is not null)
-            {
                 WriteBody("Request Body", entry.RequestBody, ConsoleColor.Cyan);
-            }
 
             if (entry.ResponseBody is not null)
-            {
                 WriteBody("Response Body", entry.ResponseBody, ConsoleColor.Magenta);
-            }
-
-            Console.WriteLine(entry.ResponseBody);
-
 
             if (entry.Exception != null)
-            {
                 WriteException(entry.Exception);
-            }
 
+            // Save JSON log
             var json = JsonSerializer.Serialize(entry);
             File.AppendAllText("owl_logs.json", json + "\n");
-
 
             return Task.CompletedTask;
         }
@@ -68,19 +62,13 @@ namespace OwlLogs.Sdk.Sinks
         private static void WriteBody(string title, BodyLog body, ConsoleColor color)
         {
             Console.WriteLine();
-
             Console.ForegroundColor = color;
             Console.WriteLine($"--- {title} ---");
             Console.ResetColor();
-
             if (!string.IsNullOrWhiteSpace(body.Raw))
-            {
                 Console.WriteLine(body.Raw);
-            }
-
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"Size: {body.Size} bytes" +
-                (body.Truncated ? " (truncated)" : string.Empty));
+            Console.WriteLine($"Size: {body.Size} bytes" + (body.Truncated ? " (truncated)" : ""));
             Console.ResetColor();
         }
 
@@ -88,28 +76,15 @@ namespace OwlLogs.Sdk.Sinks
         {
             Console.WriteLine();
             Console.WriteLine("\u001b[31m[EXCEPTION]\u001b[0m"); // Red
-
-            Console.WriteLine(
-                $"\u001b[31mType:\u001b[0m {ex.Type}"
-            );
-
-            Console.WriteLine(
-                $"\u001b[31mMessage:\u001b[0m {ex.Message}"
-            );
-
+            Console.WriteLine($"\u001b[31mType:\u001b[0m {ex.Type}");
+            Console.WriteLine($"\u001b[31mMessage:\u001b[0m {ex.Message}");
             if (!string.IsNullOrWhiteSpace(ex.TargetSite))
-            {
-                Console.WriteLine(
-                    $"\u001b[31mTarget:\u001b[0m {ex.TargetSite}"
-                );
-            }
-
+                Console.WriteLine($"\u001b[31mTarget:\u001b[0m {ex.TargetSite}");
             if (!string.IsNullOrWhiteSpace(ex.StackTrace))
             {
                 Console.WriteLine("\u001b[31mStackTrace:\u001b[0m");
                 Console.WriteLine("\u001b[31m" + ex.StackTrace + "\u001b[0m");
             }
-
             if (ex.Inner != null)
             {
                 Console.WriteLine("\u001b[31m--- Inner Exception ---\u001b[0m");

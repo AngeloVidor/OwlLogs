@@ -17,4 +17,14 @@ public class ApiLogEntry
     public BodyLog? ResponseBody { get; set; }
 
     public ExceptionLog? Exception { get; set; }
+    public LogLevel Level { get; set; } = LogLevel.Info;
+
+}
+
+public enum LogLevel
+{
+    Info,
+    Warning,
+    Error,
+    Critical
 }

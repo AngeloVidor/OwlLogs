@@ -72,9 +72,12 @@ public sealed class OwlLogsMiddleware
                 await responseBuffer.CopyToAsync(originalBody);
                 context.Response.Body = originalBody;
             }
+            var level = GetLogLevel(context.Response.StatusCode, exception);
+
 
             var log = new ApiLogEntry
             {
+                Level = level,
                 Method = context.Request.Method,
                 Path = context.Request.Path,
                 StatusCode = context.Response.StatusCode,
@@ -87,10 +90,19 @@ public sealed class OwlLogsMiddleware
                 SafeResponseHeaders = safeResponseHeaders,
                 RequestBody = requestBody,
                 ResponseBody = responseBody,
-                Exception = exception is null ? null : ExceptionMapper.Map(exception)
+                Exception = exception is null ? null : ExceptionMapper.Map(exception),
             };
 
             await Task.WhenAll(_sinks.Select(s => s.WriteAsync(log)));
         }
+    }
+
+    private static LogLevel GetLogLevel(int statusCode, Exception? exception)
+    {
+        if (exception != null) return LogLevel.Critical;
+        if (statusCode >= 500) return LogLevel.Critical;
+        if (statusCode >= 400) return LogLevel.Error;
+        if (statusCode >= 300) return LogLevel.Warning;
+        return LogLevel.Info;
     }
 }
