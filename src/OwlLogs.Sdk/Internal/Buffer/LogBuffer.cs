@@ -42,3 +42,5 @@ public class LogBuffer
         return batch;
     }
 }
+
+// test Sopa analysis
