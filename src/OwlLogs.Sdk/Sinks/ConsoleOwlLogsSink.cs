@@ -78,8 +78,6 @@ namespace OwlLogs.Sdk.Sinks
             Console.WriteLine("\u001b[31m[EXCEPTION]\u001b[0m"); // Red
             Console.WriteLine($"\u001b[31mType:\u001b[0m {ex.Type}");
             Console.WriteLine($"\u001b[31mMessage:\u001b[0m {ex.Message}");
-            if (!string.IsNullOrWhiteSpace(ex.TargetSite))
-                Console.WriteLine($"\u001b[31mTarget:\u001b[0m {ex.TargetSite}");
             if (!string.IsNullOrWhiteSpace(ex.StackTrace))
             {
                 Console.WriteLine("\u001b[31mStackTrace:\u001b[0m");

@@ -90,7 +90,7 @@ public sealed class OwlLogsMiddleware
                 SafeResponseHeaders = safeResponseHeaders,
                 RequestBody = requestBody,
                 ResponseBody = responseBody,
-                Exception = exception is null ? null : ExceptionMapper.Map(exception),
+                Exception = ExceptionMapper.Map(exception, _options.ExceptionOptions)
             };
 
             await Task.WhenAll(_sinks.Select(s => s.WriteAsync(log)));
