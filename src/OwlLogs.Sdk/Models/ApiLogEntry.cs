@@ -13,6 +13,8 @@ public class ApiLogEntry
     public Dictionary<string, string>? SafeRequestHeaders { get; set; }
     public Dictionary<string, string>? SafeResponseHeaders { get; set; }
     public string? CorrelationId { get; set; }
+    public BodyLog? RequestBody { get; set; }
+    public BodyLog? ResponseBody { get; set; }
 
     public ExceptionLog? Exception { get; set; }
 }
