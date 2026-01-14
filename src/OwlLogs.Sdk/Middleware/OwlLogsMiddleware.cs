@@ -5,6 +5,7 @@ using OwlLogs.Sdk.Internal.Helpers;
 using OwlLogs.Sdk.Internal.Mappers;
 using OwlLogs.Sdk.Models;
 using OwlLogs.Sdk.Options;
+using static OwlLogs.Sdk.Internal.Helpers.BodyReader;
 
 namespace OwlLogs.Sdk.Middleware;
 
@@ -14,10 +15,7 @@ public sealed class OwlLogsMiddleware
     private readonly IEnumerable<IOwlLogsSink> _sinks;
     private readonly OwlLogsOptions _options;
 
-    public OwlLogsMiddleware(
-        RequestDelegate next,
-        IEnumerable<IOwlLogsSink> sinks,
-        OwlLogsOptions options)
+    public OwlLogsMiddleware(RequestDelegate next, IEnumerable<IOwlLogsSink> sinks, OwlLogsOptions options)
     {
         _next = next;
         _sinks = sinks;
@@ -54,15 +52,22 @@ public sealed class OwlLogsMiddleware
         }
         finally
         {
+
+            var safeRequestHeaders = HeaderSanitizer.Sanitize(
+                context.Request.Headers,
+                _options
+            );
+
+            var safeResponseHeaders = HeaderSanitizer.Sanitize(
+                context.Response.Headers,
+                _options
+            );
+
             stopwatch.Stop();
 
             if (_options.LogResponseBody)
             {
-                responseBody = await BodyReader.ReadResponseAsync(
-                    context,
-                    responseBuffer,
-                    _options
-                );
+                responseBody = await BodyReader.ReadResponseAsync(context, responseBuffer, _options);
 
                 responseBuffer.Position = 0;
                 await responseBuffer.CopyToAsync(originalBody);
@@ -79,6 +84,8 @@ public sealed class OwlLogsMiddleware
                 ContentType = context.Request.ContentType,
                 ClientIp = context.Connection.RemoteIpAddress?.ToString(),
                 CorrelationId = context.TraceIdentifier,
+                SafeRequestHeaders = safeRequestHeaders,
+                SafeResponseHeaders = safeResponseHeaders,
                 RequestBody = requestBody,
                 ResponseBody = responseBody,
                 Exception = exception is null ? null : ExceptionMapper.Map(exception)
