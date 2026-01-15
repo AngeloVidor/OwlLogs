@@ -84,9 +84,13 @@ public sealed class OwlLogsMiddleware
                 context.Response.Body = originalBody;
             }
 
+            LogLevel level = _options.Endpoints.GetLogLevel(context)
+                             ?? exception?.Let(ex => _options.ExceptionOptions.GetLogLevel(ex))
+                             ?? GetLogLevel(context.Response.StatusCode, exception);
+
             var log = new ApiLogEntry
             {
-                Level = GetLogLevel(context.Response.StatusCode, exception),
+                Level = level,
                 Method = context.Request.Method,
                 Path = context.Request.Path,
                 StatusCode = context.Response.StatusCode,
