@@ -74,7 +74,6 @@ public class LogWorker
                 Console.Error.WriteLine(
                     $"[OwlLogs] Sink '{sink.GetType().Name}' failed: {ex.Message}");
 
-
             }
         }
     }

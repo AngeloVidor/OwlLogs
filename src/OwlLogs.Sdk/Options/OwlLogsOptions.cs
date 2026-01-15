@@ -1,7 +1,12 @@
+using Microsoft.AspNetCore.Http;
+
 namespace OwlLogs.Sdk.Options;
 
 public sealed class OwlLogsOptions
 {
+    public bool Enabled { get; set; } = false;
+    public EndpointFilterOptions Endpoints { get; } = new();
+
     public bool LogRequestBody { get; set; } = false;
     public bool LogResponseBody { get; set; } = false;
     public bool LogRequestHeaders { get; set; } = true;
