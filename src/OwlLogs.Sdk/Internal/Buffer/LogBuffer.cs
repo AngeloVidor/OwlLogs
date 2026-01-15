@@ -43,4 +43,3 @@ public class LogBuffer
     }
 }
 
-// test Sopa analysis

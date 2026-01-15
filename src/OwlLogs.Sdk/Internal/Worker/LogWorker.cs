@@ -15,10 +15,15 @@ public class LogWorker
     private readonly int _batchSize;
     private readonly int _flushIntervalMs;
 
-    public LogWorker(LogBuffer buffer, IEnumerable<IOwlLogsSink> sinks, CancellationToken cancellationToken, int batchSize = 10, int flushIntervalMs = 500)
+    public LogWorker(
+        LogBuffer buffer,
+        IEnumerable<IOwlLogsSink> sinks,
+        CancellationToken cancellationToken,
+        int batchSize,
+        int flushIntervalMs)
     {
-        _buffer = buffer;
-        _sinks = sinks;
+        _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
+        _sinks = sinks ?? throw new ArgumentNullException(nameof(sinks));
         _cancellationToken = cancellationToken;
         _batchSize = batchSize;
         _flushIntervalMs = flushIntervalMs;
@@ -26,31 +31,51 @@ public class LogWorker
 
     public async Task RunAsync()
     {
-        while (!_cancellationToken.IsCancellationRequested)
+        try
         {
-            var batch = _buffer.DequeueBatch(_batchSize);
-
-            if (batch.Count > 0)
+            while (!_cancellationToken.IsCancellationRequested)
             {
-                foreach (var sink in _sinks)
+                await ProcessBatchAsync();
+
+                try
                 {
-                    try
-                    {
-                        foreach (var log in batch)
-
-                            await sink.WriteAsync(log);
-
-                    }
-                    catch
-                    {
-
-                    }
+                    await Task.Delay(_flushIntervalMs, _cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
                 }
             }
+        }
+        finally
+        {
+            await ProcessBatchAsync();
+        }
+    }
 
-            await Task.Delay(_flushIntervalMs, _cancellationToken);
+    private async Task ProcessBatchAsync()
+    {
+        var batch = _buffer.DequeueBatch(_batchSize);
+
+        if (batch.Count == 0)
+            return;
+
+        foreach (var sink in _sinks)
+        {
+            try
+            {
+                foreach (var log in batch)
+                {
+                    await sink.WriteAsync(log);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(
+                    $"[OwlLogs] Sink '{sink.GetType().Name}' failed: {ex.Message}");
+
+
+            }
         }
     }
 }
-
-// test Sopa analysis
