@@ -4,6 +4,7 @@ using OwlLogs.Sdk.Abstractions;
 using OwlLogs.Sdk.Internal.Helpers;
 using OwlLogs.Sdk.Internal.Logging;
 using OwlLogs.Sdk.Internal.Mappers;
+using OwlLogs.Sdk.Internal.Runtime;
 using OwlLogs.Sdk.Models;
 using OwlLogs.Sdk.Options;
 using static OwlLogs.Sdk.Internal.Helpers.BodyReader;
@@ -14,39 +15,17 @@ namespace OwlLogs.Sdk.Middleware;
 public sealed class OwlLogsMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly IEnumerable<IOwlLogsSink> _sinks;
+    private readonly OwlLogsRuntime _runtime;
     private readonly OwlLogsOptions _options;
 
-    private static readonly object _initLock = new();
-    private static Lazy<LogBuffer> _logBuffer = new(() => null!);
-    private static Lazy<Task> _workerTask = new(() => null!);
-    private static readonly CancellationTokenSource _cts = new();
-    private static bool _initialized = false;
-
-    public OwlLogsMiddleware(RequestDelegate next, IEnumerable<IOwlLogsSink> sinks, OwlLogsOptions options)
+    public OwlLogsMiddleware(
+        RequestDelegate next,
+        OwlLogsRuntime runtime,
+        OwlLogsOptions options)
     {
         _next = next;
-        _sinks = sinks;
+        _runtime = runtime;
         _options = options;
-
-        if (!_initialized)
-        {
-            lock (_initLock)
-            {
-                if (!_initialized)
-                {
-                    _logBuffer = new Lazy<LogBuffer>(() => new LogBuffer(_options.BufferSize));
-                    _workerTask = new Lazy<Task>(() =>
-                    {
-                        var worker = new LogWorker(_logBuffer.Value, _sinks, _cts.Token, _options.BatchSize, _options.FlushIntervalMs);
-                        return Task.Run(() => worker.RunAsync());
-                    });
-
-                    _ = _workerTask.Value;
-                    _initialized = true;
-                }
-            }
-        }
     }
     public async Task InvokeAsync(HttpContext context)
     {
@@ -115,7 +94,7 @@ public sealed class OwlLogsMiddleware
                 Exception = ExceptionMapper.Map(exception, _options.ExceptionOptions)
             };
 
-            _logBuffer.Value.Enqueue(log);
+            _runtime.Buffer.Enqueue(log);
         }
     }
 
@@ -128,5 +107,3 @@ public sealed class OwlLogsMiddleware
         return LogLevel.Info;
     }
 }
-
-// test Sopa analysis
