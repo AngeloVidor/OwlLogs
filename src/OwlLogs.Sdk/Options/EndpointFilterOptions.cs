@@ -8,8 +8,7 @@ public sealed class EndpointFilterOptions
 {
     internal HashSet<PathString> Whitelist { get; } = new();
     internal HashSet<PathString> Blacklist { get; } = new();
-
-    // Novo: log level por endpoint
+    
     internal Dictionary<PathString, LogLevel> LogLevels { get; } = new();
 
     public bool HasRules =>
