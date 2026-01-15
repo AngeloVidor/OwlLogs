@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using OwlLogs.Sdk.Abstractions;
+using OwlLogs.Sdk.Internal.Endpoint;
 using OwlLogs.Sdk.Internal.Helpers;
 using OwlLogs.Sdk.Internal.Logging;
 using OwlLogs.Sdk.Internal.Mappers;
@@ -29,6 +30,13 @@ public sealed class OwlLogsMiddleware
     }
     public async Task InvokeAsync(HttpContext context)
     {
+
+        if (!EndpointLoggingDecider.ShouldLog(context, _options))
+        {
+            await _next(context);
+            return;
+        }
+
         var stopwatch = Stopwatch.StartNew();
         Exception? exception = null;
 
