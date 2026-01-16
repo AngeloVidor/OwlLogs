@@ -16,12 +16,12 @@ namespace OwlLogs.Sdk.Middleware;
 public sealed class OwlLogsMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly OwlLogsRuntime _runtime;
+    private readonly IOwlLogsRuntime _runtime;
     private readonly OwlLogsOptions _options;
 
     public OwlLogsMiddleware(
         RequestDelegate next,
-        OwlLogsRuntime runtime,
+        IOwlLogsRuntime runtime,
         OwlLogsOptions options)
     {
         _next = next;
@@ -84,13 +84,21 @@ public sealed class OwlLogsMiddleware
                 context.Response.Body = originalBody;
             }
 
-            LogLevel level = _options.Endpoints.GetLogLevel(context)
-                             ?? exception?.Let(ex => _options.ExceptionOptions.GetLogLevel(ex))
-                             ?? GetLogLevel(context.Response.StatusCode, exception);
+            LogLevel? level = _options.Endpoints.GetLogLevel(context);
+
+            if (level == null && exception != null)
+            {
+                level = _options.ExceptionOptions.GetLogLevel(exception);
+            }
+
+            if (level == null)
+            {
+                level = GetLogLevel(context.Response.StatusCode, exception);
+            }
 
             var log = new ApiLogEntry
             {
-                Level = level,
+                Level = level.Value,
                 Method = context.Request.Method,
                 Path = context.Request.Path,
                 StatusCode = context.Response.StatusCode,
@@ -106,13 +114,12 @@ public sealed class OwlLogsMiddleware
                 Exception = ExceptionMapper.Map(exception, _options.ExceptionOptions)
             };
 
-            _runtime.Buffer.Enqueue(log);
+            _runtime.Write(log);
         }
     }
 
     private static LogLevel GetLogLevel(int statusCode, Exception? exception)
     {
-        if (exception != null) return LogLevel.Critical;
         if (statusCode >= 500) return LogLevel.Critical;
         if (statusCode >= 400) return LogLevel.Error;
         if (statusCode >= 300) return LogLevel.Warning;
