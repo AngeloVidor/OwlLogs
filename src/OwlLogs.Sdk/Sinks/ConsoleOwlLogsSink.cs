@@ -1,9 +1,10 @@
 using OwlLogs.Sdk.Abstractions;
 using OwlLogs.Sdk.Models;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace OwlLogs.Sdk.Sinks
 {
@@ -11,83 +12,110 @@ namespace OwlLogs.Sdk.Sinks
     {
         public Task WriteAsync(ApiLogEntry entry)
         {
-            // Log Level Color
-            Console.Write("\u001b[36m[OWL] \u001b[0m"); // Cyan
-            switch (entry.Level)
-            {
-                case LogLevel.Info: Console.Write("\u001b[32m[INFO] \u001b[0m"); break; // Green
-                case LogLevel.Warning: Console.Write("\u001b[33m[WARN] \u001b[0m"); break; // Yellow
-                case LogLevel.Error: Console.Write("\u001b[31m[ERROR] \u001b[0m"); break; // Red
-                case LogLevel.Critical: Console.Write("\u001b[35m[CRITICAL] \u001b[0m"); break; // Magenta
-            }
+            WriteMainLine(entry);
 
-            Console.Write("\u001b[33m" + entry.Method + "\u001b[0m"); // Yellow
-            Console.Write("\u001b[32m " + entry.Path + " \u001b[0m"); // Green
-            Console.Write("\u001b[90m (" + entry.DurationMs.ToString("F2") + " ms)\u001b[0m"); // DarkGray
-            Console.Write("\u001b[34m | CorrelationId: " + entry.CorrelationId + "\u001b[0m"); // Blue
-            Console.Write("\u001b[33m | IP: " + entry.ClientIp + "\u001b[0m"); // DarkYellow
-            Console.Write("\u001b[37m | ContentType: " + entry.ContentType + "\u001b[0m"); // Gray
-            Console.WriteLine();
-
-            if (entry.SafeRequestHeaders != null)
-            {
-                Console.WriteLine("\u001b[36m--- Safe Request Headers ---\u001b[0m");
-                foreach (var h in entry.SafeRequestHeaders)
-                    Console.WriteLine($"{h.Key}: {h.Value}");
-            }
-
-            if (entry.SafeResponseHeaders != null)
-            {
-                Console.WriteLine("\u001b[35m--- Safe Response Headers ---\u001b[0m");
-                foreach (var h in entry.SafeResponseHeaders)
-                    Console.WriteLine($"{h.Key}: {h.Value}");
-            }
+            WriteHeaders("Safe Request Headers", entry.SafeRequestHeaders, ConsoleColor.Cyan);
+            WriteHeaders("Safe Response Headers", entry.SafeResponseHeaders, ConsoleColor.Magenta);
 
             if (entry.RequestBody is not null)
                 WriteBody("Request Body", entry.RequestBody, ConsoleColor.Cyan);
-
             if (entry.ResponseBody is not null)
                 WriteBody("Response Body", entry.ResponseBody, ConsoleColor.Magenta);
 
             if (entry.Exception != null)
                 WriteException(entry.Exception);
 
-            // Save JSON log
-            var json = JsonSerializer.Serialize(entry);
-            File.AppendAllText("owl_logs.json", json + "\n");
+            SaveJson(entry);
 
             return Task.CompletedTask;
         }
 
+        #region Helpers
+
+        private static void WriteMainLine(ApiLogEntry entry)
+        {
+            var levelColor = entry.Level switch
+            {
+                LogLevel.Info => ConsoleColor.Green,
+                LogLevel.Warning => ConsoleColor.Yellow,
+                LogLevel.Error => ConsoleColor.Red,
+                LogLevel.Critical => ConsoleColor.Magenta,
+                _ => ConsoleColor.White
+            };
+
+            WriteColored("[OWL] ", ConsoleColor.Cyan);
+            WriteColored($"[{entry.Level,-8}] ", levelColor);
+            WriteColored($"{entry.Method,-6} ", ConsoleColor.Yellow);
+            WriteColored($"{entry.Path,-30} ", ConsoleColor.Green);
+            WriteColored($"({entry.DurationMs,6:F2} ms) ", ConsoleColor.DarkGray);
+            WriteColored($"| CorrelationId: {entry.CorrelationId} ", ConsoleColor.Blue);
+            WriteColored($"| IP: {entry.ClientIp} ", ConsoleColor.DarkYellow);
+            WriteColored($"| ContentType: {entry.ContentType}", ConsoleColor.Gray);
+            Console.WriteLine();
+        }
+
+        private static void WriteHeaders(string title, IDictionary<string, string> headers, ConsoleColor color)
+        {
+            if (headers == null || headers.Count == 0) return;
+
+            Console.WriteLine();
+            WriteColored($"--- {title} ---", color);
+            Console.WriteLine();
+            foreach (var h in headers)
+                Console.WriteLine($"{h.Key}: {h.Value}");
+        }
+
+
         private static void WriteBody(string title, BodyLog body, ConsoleColor color)
         {
             Console.WriteLine();
-            Console.ForegroundColor = color;
-            Console.WriteLine($"--- {title} ---");
-            Console.ResetColor();
+            WriteColored($"--- {title} ---", color);
+            Console.WriteLine();
             if (!string.IsNullOrWhiteSpace(body.Raw))
                 Console.WriteLine(body.Raw);
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"Size: {body.Size} bytes" + (body.Truncated ? " (truncated)" : ""));
-            Console.ResetColor();
+
+            WriteColored($"Size: {body.Size} bytes" + (body.Truncated ? " (truncated)" : ""), ConsoleColor.DarkGray);
+            Console.WriteLine();
         }
 
         private static void WriteException(ExceptionLog ex)
         {
             Console.WriteLine();
-            Console.WriteLine("\u001b[31m[EXCEPTION]\u001b[0m"); // Red
-            Console.WriteLine($"\u001b[31mType:\u001b[0m {ex.Type}");
-            Console.WriteLine($"\u001b[31mMessage:\u001b[0m {ex.Message}");
+            WriteColored("[EXCEPTION]", ConsoleColor.Red);
+            Console.WriteLine();
+            WriteColored("Type: ", ConsoleColor.Red); Console.WriteLine(ex.Type);
+            WriteColored("Message: ", ConsoleColor.Red); Console.WriteLine(ex.Message);
+
             if (!string.IsNullOrWhiteSpace(ex.StackTrace))
             {
-                Console.WriteLine("\u001b[31mStackTrace:\u001b[0m");
-                Console.WriteLine("\u001b[31m" + ex.StackTrace + "\u001b[0m");
+                WriteColored("StackTrace:\n", ConsoleColor.Red);
+                Console.WriteLine(ex.StackTrace);
             }
+
             if (ex.Inner != null)
             {
-                Console.WriteLine("\u001b[31m--- Inner Exception ---\u001b[0m");
+                WriteColored("--- Inner Exception ---\n", ConsoleColor.Red);
                 WriteException(ex.Inner);
             }
         }
+
+        private static void SaveJson(ApiLogEntry entry)
+        {
+            var json = JsonSerializer.Serialize(entry, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            File.AppendAllText("owl_logs.json", json + "\n");
+        }
+
+        private static void WriteColored(string text, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.Write(text);
+            Console.ResetColor();
+        }
+
+        #endregion
     }
 }

@@ -17,14 +17,24 @@ public static class OwlLogsServiceCollectionExtensions
         configure(options);
 
         services.AddSingleton(options);
+        
         services.AddSingleton<OwlLogsRuntime>();
+        services.AddSingleton<IOwlLogsRuntime>(sp =>
+            sp.GetRequiredService<OwlLogsRuntime>());
 
         services.AddSingleton<LogBuffer>(sp =>
             sp.GetRequiredService<OwlLogsRuntime>().Buffer);
 
+
+
         foreach (var sink in sinks)
         {
             services.AddSingleton<IOwlLogsSink>(sink);
+        }
+
+        if (options.SqlServer.Enabled)
+        {
+            services.AddSingleton<IOwlLogsSink, SqlServerOwlLogsSink>();
         }
 
         services.AddHostedService<OwlLogsBackgroundService>();

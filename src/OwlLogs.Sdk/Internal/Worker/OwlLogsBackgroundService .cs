@@ -10,15 +10,19 @@ public sealed class OwlLogsBackgroundService : BackgroundService
     private readonly LogBuffer _buffer;
     private readonly IEnumerable<IOwlLogsSink> _sinks;
     private readonly OwlLogsOptions _options;
+    private readonly IOwlLogsRuntime _runtime;
+
 
     public OwlLogsBackgroundService(
         LogBuffer buffer,
         IEnumerable<IOwlLogsSink> sinks,
-        OwlLogsOptions options)
+        OwlLogsOptions options,
+        IOwlLogsRuntime runtime)
     {
         _buffer = buffer;
         _sinks = sinks;
         _options = options;
+        _runtime = runtime;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -29,6 +33,8 @@ public sealed class OwlLogsBackgroundService : BackgroundService
             stoppingToken,
             _options.BatchSize,
             _options.FlushIntervalMs);
+
+        await _runtime.InitializeAsync();
 
         await worker.RunAsync();
     }
