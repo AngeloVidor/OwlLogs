@@ -34,6 +34,7 @@ public sealed class SqlServerOwlLogsSink :
                 path NVARCHAR(500),
                 method NVARCHAR(10),
                 status_code INT,
+                correlation_id NVARCHAR(100),
                 created_at DATETIME2 NOT NULL
             )
         END
@@ -57,6 +58,7 @@ public sealed class SqlServerOwlLogsSink :
             path,
             method,
             status_code,
+            correlation_id,
             created_at
         )
         VALUES
@@ -67,6 +69,7 @@ public sealed class SqlServerOwlLogsSink :
             @path,
             @method,
             @status_code,
+            @correlation_id,
             @created_at
         )
         """;
@@ -79,6 +82,7 @@ public sealed class SqlServerOwlLogsSink :
         cmd.Parameters.AddWithValue("@path", entry.Path);
         cmd.Parameters.AddWithValue("@method", entry.Method);
         cmd.Parameters.AddWithValue("@status_code", entry.StatusCode);
+        cmd.Parameters.AddWithValue("@correlation_id", entry.CorrelationId);
         cmd.Parameters.AddWithValue("@created_at", entry.OccurredAt);
 
         await cmd.ExecuteNonQueryAsync();
