@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\angel\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj": {}
+    "C:\\Users\\angel\\Desktop\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj": {}
   },
   "projects": {
-    "C:\\Users\\angel\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj": {
-      "version": "1.4.7",
+    "C:\\Users\\angel\\Desktop\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj": {
+      "version": "1.5.4",
       "restore": {
-        "projectUniqueName": "C:\\Users\\angel\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj",
+        "projectUniqueName": "C:\\Users\\angel\\Desktop\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj",
         "projectName": "OwlLogs.Sdk",
-        "projectPath": "C:\\Users\\angel\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj",
+        "projectPath": "C:\\Users\\angel\\Desktop\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj",
         "packagesPath": "C:\\Users\\angel\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\angel\\OwlLogs\\src\\OwlLogs.Sdk\\obj\\",
+        "outputPath": "C:\\Users\\angel\\Desktop\\OwlLogs\\src\\OwlLogs.Sdk\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
