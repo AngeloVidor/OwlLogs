@@ -12,10 +12,6 @@ using static OwlLogs.Sdk.Internal.Helpers.BodyReader;
 
 namespace OwlLogs.Sdk.Filters;
 
-/// <summary>
-/// Comprehensive exception filter that captures unhandled exceptions and maps them to appropriate HTTP status codes.
-/// Ensures that OwlLogs records the REAL status code of the exception.
-/// </summary>
 public sealed class OwlLogsExceptionFilter : IExceptionFilter
 {
     private readonly IOwlLogsRuntime _runtime;
@@ -37,7 +33,6 @@ public sealed class OwlLogsExceptionFilter : IExceptionFilter
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         stopwatch.Stop();
 
-        // Skip logging if OwlLogs is disabled
         if (!_options.Enabled)
             return;
 
@@ -49,10 +44,8 @@ public sealed class OwlLogsExceptionFilter : IExceptionFilter
             ? HeaderSanitizer.Sanitize(context.HttpContext.Response.Headers, _options)
             : null;
 
-        // Map exception to appropriate HTTP status code
         int statusCode = GetStatusCodeForException(context.Exception);
 
-        // Determine the log level
         LogLevel? level = _options.Endpoints.GetLogLevel(context.HttpContext);
 
         if (level == null && context.Exception != null)
@@ -83,13 +76,11 @@ public sealed class OwlLogsExceptionFilter : IExceptionFilter
 
         _runtime.Write(log);
 
-        // Set the status code in the response if it hasn't been started yet
         if (!context.HttpContext.Response.HasStarted)
         {
             context.HttpContext.Response.StatusCode = statusCode;
         }
 
-        // Map the exception to a ProblemDetails response (RFC 7807)
         context.Result = new ObjectResult(new ProblemDetails
         {
             Type = GetProblemType(context.Exception),
@@ -109,9 +100,6 @@ public sealed class OwlLogsExceptionFilter : IExceptionFilter
             context.HttpContext.Request.Path);
     }
 
-    /// <summary>
-    /// Maps specific exceptions to appropriate HTTP status codes.
-    /// </summary>
     private int GetStatusCodeForException(Exception ex)
     {
         return ex switch
