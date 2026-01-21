@@ -40,6 +40,12 @@ public static class OwlLogsServiceCollectionExtensions
                 new ILoggerOwlLogsSink(sp.GetRequiredService<ILogger<ILoggerOwlLogsSink>>()));
         }
 
+
+        if (options.Console.Enabled)
+        {
+            services.AddSingleton<IOwlLogsSink, ConsoleOwlLogsSink>();
+        }
+
         if (options.SqlServer.Enabled)
         {
             services.AddSingleton<IOwlLogsSink, SqlServerOwlLogsSink>();
