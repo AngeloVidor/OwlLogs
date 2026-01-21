@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "OwlLogs.Sdk/1.5.7": {
+      "OwlLogs.Sdk/1.6.0": {
         "dependencies": {
           "Microsoft.Data.SqlClient": "6.1.4",
           "RabbitMQ.Client": "6.8.1"
@@ -397,7 +397,7 @@
     }
   },
   "libraries": {
-    "OwlLogs.Sdk/1.5.7": {
+    "OwlLogs.Sdk/1.6.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

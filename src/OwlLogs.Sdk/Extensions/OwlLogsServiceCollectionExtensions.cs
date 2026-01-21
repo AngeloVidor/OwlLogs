@@ -1,8 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using OwlLogs.Sdk.Abstractions;
 using OwlLogs.Sdk.Internal.Logging;
 using OwlLogs.Sdk.Internal.Runtime;
 using OwlLogs.Sdk.Options;
+using OwlLogs.Sdk.Sinks;
 
 namespace OwlLogs.Sdk.Extensions;
 
@@ -17,7 +19,7 @@ public static class OwlLogsServiceCollectionExtensions
         configure(options);
 
         services.AddSingleton(options);
-        
+
         services.AddSingleton<OwlLogsRuntime>();
         services.AddSingleton<IOwlLogsRuntime>(sp =>
             sp.GetRequiredService<OwlLogsRuntime>());
@@ -30,6 +32,12 @@ public static class OwlLogsServiceCollectionExtensions
         foreach (var sink in sinks)
         {
             services.AddSingleton<IOwlLogsSink>(sink);
+        }
+
+        if (options.ILoggerSink.Enabled)
+        {
+            services.AddSingleton<IOwlLogsSink>(sp =>
+                new ILoggerOwlLogsSink(sp.GetRequiredService<ILogger<ILoggerOwlLogsSink>>()));
         }
 
         if (options.SqlServer.Enabled)
