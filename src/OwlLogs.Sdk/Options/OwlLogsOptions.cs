@@ -8,7 +8,7 @@ public sealed class OwlLogsOptions
     public EndpointFilterOptions Endpoints { get; } = new();
     public SqlServerSinkOptions SqlServer { get; } = new();
     public ILoggerSinkOptions ILoggerSink { get; } = new();
-
+    public ConsoleSinkOptions Console { get; } = new();
 
     public bool LogRequestBody { get; set; } = false;
     public bool LogResponseBody { get; set; } = false;
