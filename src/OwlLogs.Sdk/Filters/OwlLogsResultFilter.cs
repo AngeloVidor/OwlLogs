@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 using OwlLogs.Sdk.Abstractions;
+using OwlLogs.Sdk.Middlewares;
 using OwlLogs.Sdk.Models;
 using OwlLogs.Sdk.Options;
 using static OwlLogs.Sdk.Internal.Helpers.BodyReader;
@@ -38,8 +39,7 @@ public sealed class OwlLogsResultFilter : IResultFilter
         if (context.HttpContext.Response.HasStarted)
             return;
 
-        var elapsedTicks = System.Diagnostics.Stopwatch.GetTimestamp() - _startTicks;
-        var durationMs = (double)elapsedTicks / System.Diagnostics.Stopwatch.Frequency * 1000;
+        var durationMs = OwlLogsTimingMiddleware.GetElapsedMs(context.HttpContext);
 
         var safeRequestHeaders = _options.LogRequestHeaders
             ? HeaderSanitizer.Sanitize(context.HttpContext.Request.Headers, _options)

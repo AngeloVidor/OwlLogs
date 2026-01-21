@@ -1568,7 +1568,7 @@
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.5.4",
+    "version": "1.5.7",
     "restore": {
       "projectUniqueName": "C:\\Users\\angel\\Desktop\\OwlLogs\\src\\OwlLogs.Sdk\\OwlLogs.Sdk.csproj",
       "projectName": "OwlLogs.Sdk",

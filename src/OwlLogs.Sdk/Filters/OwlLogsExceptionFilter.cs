@@ -9,6 +9,7 @@ using OwlLogs.Sdk.Options;
 using Microsoft.Extensions.Logging;
 using LogLevel = OwlLogs.Sdk.Models.LogLevel;
 using static OwlLogs.Sdk.Internal.Helpers.BodyReader;
+using OwlLogs.Sdk.Middlewares;
 
 namespace OwlLogs.Sdk.Filters;
 
@@ -30,8 +31,7 @@ public sealed class OwlLogsExceptionFilter : IExceptionFilter
 
     public void OnException(ExceptionContext context)
     {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        stopwatch.Stop();
+        var durationMs = OwlLogsTimingMiddleware.GetElapsedMs(context.HttpContext);
 
         if (!_options.Enabled)
             return;
@@ -64,7 +64,7 @@ public sealed class OwlLogsExceptionFilter : IExceptionFilter
             Method = context.HttpContext.Request.Method,
             Path = context.HttpContext.Request.Path,
             StatusCode = statusCode,
-            DurationMs = stopwatch.Elapsed.TotalMilliseconds,
+            DurationMs = durationMs,
             OccurredAt = DateTime.UtcNow,
             ContentType = context.HttpContext.Request.ContentType,
             ClientIp = context.HttpContext.Connection.RemoteIpAddress?.ToString(),
@@ -83,7 +83,6 @@ public sealed class OwlLogsExceptionFilter : IExceptionFilter
 
         context.Result = new ObjectResult(new ProblemDetails
         {
-            Type = GetProblemType(context.Exception),
             Title = GetProblemTitle(context.Exception),
             Status = statusCode,
             Detail = context.Exception.Message,
@@ -125,7 +124,7 @@ public sealed class OwlLogsExceptionFilter : IExceptionFilter
             DirectoryNotFoundException => 404,
 
             // 409 Conflict - Request conflicts with current state
-            InvalidOperationException when ex.Message.Contains("already") || 
+            InvalidOperationException when ex.Message.Contains("already") ||
                                           ex.Message.Contains("exists") => 409,
 
             // 410 Gone - Resource no longer available
@@ -143,48 +142,6 @@ public sealed class OwlLogsExceptionFilter : IExceptionFilter
         };
     }
 
-    private string GetProblemType(Exception? ex)
-    {
-        if (ex == null)
-            return "about:blank";
-
-        return ex switch
-        {
-            ArgumentNullException or 
-            ArgumentException or 
-            ValidationException or 
-            FormatException or 
-            IndexOutOfRangeException or 
-            OverflowException =>
-                "https://api.example.com/errors/validation-error",
-
-            UnauthorizedAccessException or 
-            System.Security.Authentication.AuthenticationException =>
-                "https://api.example.com/errors/authentication-error",
-
-            System.Security.SecurityException =>
-                "https://api.example.com/errors/authorization-error",
-
-            KeyNotFoundException or 
-            FileNotFoundException or 
-            DirectoryNotFoundException =>
-                "https://api.example.com/errors/not-found",
-
-            InvalidOperationException =>
-                "https://api.example.com/errors/invalid-operation",
-
-            NotSupportedException =>
-                "https://api.example.com/errors/not-supported",
-
-            NotImplementedException =>
-                "https://api.example.com/errors/not-implemented",
-
-            OperationCanceledException =>
-                "https://api.example.com/errors/operation-cancelled",
-
-            _ => "https://api.example.com/errors/internal-server-error"
-        };
-    }
 
     private string GetProblemTitle(Exception? ex)
     {
@@ -193,52 +150,52 @@ public sealed class OwlLogsExceptionFilter : IExceptionFilter
 
         return ex switch
         {
-            ArgumentNullException => 
+            ArgumentNullException =>
                 "Required Field Missing",
 
-            ArgumentException => 
+            ArgumentException =>
                 "Invalid Argument",
 
-            ValidationException => 
+            ValidationException =>
                 "Validation Error",
 
-            FormatException => 
+            FormatException =>
                 "Invalid Format",
 
-            IndexOutOfRangeException => 
+            IndexOutOfRangeException =>
                 "Index Out of Range",
 
-            OverflowException => 
+            OverflowException =>
                 "Value Overflow",
 
-            UnauthorizedAccessException => 
+            UnauthorizedAccessException =>
                 "Authentication Required",
 
-            System.Security.Authentication.AuthenticationException => 
+            System.Security.Authentication.AuthenticationException =>
                 "Authentication Failed",
 
-            System.Security.SecurityException => 
+            System.Security.SecurityException =>
                 "Access Denied",
 
-            KeyNotFoundException => 
+            KeyNotFoundException =>
                 "Resource Not Found",
 
-            FileNotFoundException => 
+            FileNotFoundException =>
                 "File Not Found",
 
-            DirectoryNotFoundException => 
+            DirectoryNotFoundException =>
                 "Directory Not Found",
 
-            InvalidOperationException => 
+            InvalidOperationException =>
                 "Invalid Operation",
 
-            NotSupportedException => 
+            NotSupportedException =>
                 "Operation Not Supported",
 
-            NotImplementedException => 
+            NotImplementedException =>
                 "Feature Not Implemented",
 
-            OperationCanceledException => 
+            OperationCanceledException =>
                 "Operation Cancelled or Timeout",
 
             TimeoutException =>
