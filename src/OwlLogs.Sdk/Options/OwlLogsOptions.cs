@@ -9,6 +9,8 @@ public sealed class OwlLogsOptions
     public SqlServerSinkOptions SqlServer { get; } = new();
     public ILoggerSinkOptions ILoggerSink { get; } = new();
     public ConsoleSinkOptions Console { get; } = new();
+    public RabbitMqSinkOptions RabbitMq { get; } = new();
+
 
     public bool LogRequestBody { get; set; } = false;
     public bool LogResponseBody { get; set; } = false;

@@ -40,10 +40,15 @@ public static class OwlLogsServiceCollectionExtensions
                 new ILoggerOwlLogsSink(sp.GetRequiredService<ILogger<ILoggerOwlLogsSink>>()));
         }
 
-
         if (options.Console.Enabled)
         {
             services.AddSingleton<IOwlLogsSink, ConsoleOwlLogsSink>();
+        }
+
+        if (options.RabbitMq.Enabled)
+        {
+            services.AddSingleton<IOwlLogsSink>(sp =>
+                new RabbitMqOwlLogsSink(options.RabbitMq.HostName, options.RabbitMq.QueueName));
         }
 
         if (options.SqlServer.Enabled)
