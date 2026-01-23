@@ -7,7 +7,7 @@ public static class OwlLogsServiceExtensions
 {
     public static IApplicationBuilder UseOwlLogs(this IApplicationBuilder app)
     {
-        app.UseMiddleware<OwlLogsTimingMiddleware>();
+        app.UseMiddleware<OwlLogsExceptionMiddleware>();
 
         return app;
     }
