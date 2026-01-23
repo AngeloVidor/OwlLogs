@@ -8,7 +8,7 @@ public sealed class EndpointFilterOptions
 {
     internal HashSet<PathString> Whitelist { get; } = new();
     internal HashSet<PathString> Blacklist { get; } = new();
-    
+
     internal Dictionary<PathString, LogLevel> LogLevels { get; } = new();
 
     public bool HasRules =>
@@ -26,23 +26,30 @@ public sealed class EndpointFilterOptions
             Blacklist.Add(new PathString(path));
     }
 
-    public void SetLogLevel(string path, LogLevel level)
-    {
-        LogLevels[new PathString(path)] = level;
-    }
-
     internal bool ShouldLog(HttpContext context)
     {
         var path = context.Request.Path;
 
-        if (Blacklist.Any(b => path.StartsWithSegments(b)))
-            return false;
+        foreach (var denied in Blacklist)
+        {
+            if (path.StartsWithSegments(denied))
+                return false;
+        }
 
         if (Whitelist.Count > 0)
-            return Whitelist.Any(w => path.StartsWithSegments(w));
+        {
+            foreach (var allowed in Whitelist)
+            {
+                if (path.StartsWithSegments(allowed))
+                    return true;
+            }
+
+            return false;
+        }
 
         return true;
     }
+
 
     internal LogLevel? GetLogLevel(HttpContext context)
     {

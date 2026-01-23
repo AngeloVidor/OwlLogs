@@ -39,6 +39,13 @@ public sealed class OwlLogsExceptionMiddleware
             return;
         }
 
+        if (_options.Endpoints.HasRules &&
+          !_options.Endpoints.ShouldLog(context))
+        {
+            await _next(context);
+            return;
+        }
+
         var stopwatch = Stopwatch.StartNew();
 
         BodyLog? requestBody = null;
